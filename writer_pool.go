@@ -3,10 +3,7 @@ package logger
 import (
 	"context"
 	"sync"
-	"time"
 )
-
-var defaultReconnectionTime = time.Minute
 
 type writerPool struct {
 	mu        sync.RWMutex
@@ -25,7 +22,7 @@ func NewWriterPool(ctx context.Context) *writerPool {
 }
 
 func (wp *writerPool) SetWriter(wType string, w *writer) {
-	if wType != TCP && wType != UDP && wType != Local {
+	if wType != TCP && wType != UDP && wType != LOCAL {
 		return
 	}
 	wp.mu.Lock()
@@ -40,17 +37,15 @@ func (wp *writerPool) deleteWriter(wType string) {
 	if !ok {
 		return
 	}
-	val.w.Close()
+	val.logWriter.Close()
 	delete(wp.writers, wType)
-
 }
 
-func (wp *writerPool) WriteAll(msg string) {
+func (wp *writerPool) WriteAll(lp LogParams, tp TimeParams, mp MsgParams, kvs ...string) {
 	wp.mu.RLock()
 	defer wp.mu.RUnlock()
 	for _, v := range wp.writers {
-		_, err := v.w.Write([]byte(msg))
-		if err != nil {
+		if err := v.write(lp, tp, mp, kvs...); err != nil {
 			wp.connector.outerQ <- v
 			continue
 		}
