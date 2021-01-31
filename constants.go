@@ -61,4 +61,16 @@ const (
 	defaultDelimiter = DelimiterV
 )
 
+const (
+	SyncFileAfterMessagesCount = 100
+)
+
+type WriterStatus uint8
+
+const (
+	WriterStatusUndefined WriterStatus = iota
+	WriterStatusOk
+	WriterStatusStopped
+)
+
 var defaultReconnectionTime = time.Minute

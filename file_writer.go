@@ -6,7 +6,8 @@ import (
 )
 
 type fileWriter struct {
-	file *os.File
+	file    *os.File
+	counter int
 }
 
 func NewFileWriter(addr string) (*fileWriter, error) {
@@ -35,9 +36,19 @@ func (f *fileWriter) Info(m string) error    { _, err := f.Write([]byte(m)); ret
 func (f *fileWriter) Debug(m string) error   { _, err := f.Write([]byte(m)); return err }
 
 func (f *fileWriter) Write(ba []byte) (int, error) {
+	f.counter++
+	if f.counter == SyncFileAfterMessagesCount {
+		f.counter = 0
+		if err := f.file.Sync(); err != nil {
+			return 0, err
+		}
+	}
 	return f.file.Write(ba)
 }
 
 func (f *fileWriter) Close() error {
+	if err := f.file.Sync(); err != nil {
+		return err
+	}
 	return f.file.Close()
 }

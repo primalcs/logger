@@ -7,9 +7,9 @@ import (
 
 type Option func(*Logger) error
 
-func WithTCPConnection(addr, tag string, priority syslog.Priority) Option {
+func WithTCPConnection(addr, tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := NewWriter(TCP, addr, tag, priority)
+		w, err := NewWriter(TCP, addr, tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
@@ -18,9 +18,9 @@ func WithTCPConnection(addr, tag string, priority syslog.Priority) Option {
 	}
 }
 
-func WithUDPConnection(addr, tag string, priority syslog.Priority) Option {
+func WithUDPConnection(addr, tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := NewWriter(UDP, addr, tag, priority)
+		w, err := NewWriter(UDP, addr, tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
@@ -29,9 +29,9 @@ func WithUDPConnection(addr, tag string, priority syslog.Priority) Option {
 	}
 }
 
-func WithLocalWriter(tag string, priority syslog.Priority) Option {
+func WithLocalWriter(tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := NewWriter(LOCAL, "", tag, priority)
+		w, err := NewWriter(LOCAL, "", tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
@@ -42,7 +42,7 @@ func WithLocalWriter(tag string, priority syslog.Priority) Option {
 
 func WithFileWriter(addr, tag string) Option {
 	return func(logger *Logger) error {
-		w, err := NewWriter(FILE, addr, tag, 0)
+		w, err := NewWriter(FILE, addr, tag, 0, 1)
 		if err != nil {
 			return err
 		}

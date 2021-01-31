@@ -30,15 +30,15 @@ func (wp *writerPool) SetWriter(wType string, w *writer) {
 	wp.writers[wType] = w
 }
 
-func (wp *writerPool) deleteWriter(wType string) {
+func (wp *writerPool) stopWriter(wType string) {
 	wp.mu.Lock()
 	defer wp.mu.Unlock()
 	val, ok := wp.writers[wType]
 	if !ok {
 		return
 	}
-	val.logWriter.Close()
-	delete(wp.writers, wType)
+	val.stop(true)
+
 }
 
 func (wp *writerPool) WriteAll(lp LogParams, tp TimeParams, mp MsgParams, kvs ...string) {
@@ -47,6 +47,7 @@ func (wp *writerPool) WriteAll(lp LogParams, tp TimeParams, mp MsgParams, kvs ..
 	for _, v := range wp.writers {
 		if err := v.write(lp, tp, mp, kvs...); err != nil {
 			wp.connector.outerQ <- v
+
 			continue
 		}
 	}

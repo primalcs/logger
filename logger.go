@@ -30,7 +30,7 @@ func NewDefaultLogger() (*Logger, error) {
 		WithDelimiter(DelimiterV),
 		WithFileWriter("/var/log/logger/", "file"),
 		WithHttpListener(8080),
-		WithLocalWriter("local", syslog.LOG_DEBUG|syslog.LOG_SYSLOG),
+		WithLocalWriter("local", syslog.LOG_DEBUG|syslog.LOG_SYSLOG, 1),
 		WithLogLevel(DEBUG),
 		WithTimeLog(time.UTC, time.RFC3339),
 	}
