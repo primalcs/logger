@@ -1,6 +1,8 @@
-package logger
+package types
 
-import "time"
+import (
+	"time"
+)
 
 type LogParams struct {
 	IsForced bool

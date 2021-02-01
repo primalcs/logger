@@ -3,55 +3,60 @@ package logger
 import (
 	"log/syslog"
 	"time"
+
+	"github.com/rybnov/logger/listener"
+	"github.com/rybnov/logger/writer"
+
+	"github.com/rybnov/logger/types"
 )
 
 type Option func(*Logger) error
 
 func WithTCPConnection(addr, tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := NewWriter(TCP, addr, tag, priority, bufferLen)
+		w, err := writer.NewWriter(types.TCP, addr, tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
-		logger.writers.SetWriter(TCP, w)
+		logger.writers.SetWriter(types.TCP, w)
 		return nil
 	}
 }
 
 func WithUDPConnection(addr, tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := NewWriter(UDP, addr, tag, priority, bufferLen)
+		w, err := writer.NewWriter(types.UDP, addr, tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
-		logger.writers.SetWriter(UDP, w)
+		logger.writers.SetWriter(types.UDP, w)
 		return nil
 	}
 }
 
 func WithLocalWriter(tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := NewWriter(LOCAL, "", tag, priority, bufferLen)
+		w, err := writer.NewWriter(types.LOCAL, "", tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
-		logger.writers.SetWriter(LOCAL, w)
+		logger.writers.SetWriter(types.LOCAL, w)
 		return nil
 	}
 }
 
 func WithFileWriter(addr, tag string) Option {
 	return func(logger *Logger) error {
-		w, err := NewWriter(FILE, addr, tag, 0, 1)
+		w, err := writer.NewWriter(types.FILE, addr, tag, 0, 1)
 		if err != nil {
 			return err
 		}
-		logger.writers.SetWriter(FILE, w)
+		logger.writers.SetWriter(types.FILE, w)
 		return nil
 	}
 }
 
-func WithLogLevel(level LogLevel) Option {
+func WithLogLevel(level types.LogLevel) Option {
 	return func(logger *Logger) error {
 		logger.config.SetLogLevel(level)
 		return nil
@@ -60,27 +65,21 @@ func WithLogLevel(level LogLevel) Option {
 
 func WithDelimiter(delimiter string) Option {
 	return func(logger *Logger) error {
-		logger.config.mu.Lock()
-		defer logger.config.mu.Unlock()
-		logger.config.delimiter = delimiter
+		logger.config.SetDelimiter(delimiter)
 		return nil
 	}
 }
 
 func WithHttpListener(port int) Option {
 	return func(logger *Logger) error {
-		NewListener(port, logger)
+		listener.NewListener(port, logger.config)
 		return nil
 	}
 }
 
-func WithTimeLog(loc *time.Location, format string) Option {
+func WithTimeLog(format string, loc *time.Location) Option {
 	return func(logger *Logger) error {
-		logger.config.mu.Lock()
-		defer logger.config.mu.Unlock()
-		logger.config.location = loc
-		logger.config.timeFormat = format
-
+		logger.config.SetTimeOptions(format, loc)
 		return nil
 	}
 }

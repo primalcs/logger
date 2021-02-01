@@ -1,4 +1,4 @@
-package logger
+package types
 
 type LogWriter interface {
 	Emerg(m string) error

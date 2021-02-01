@@ -1,8 +1,10 @@
-package logger
+package ring_buffer
 
 import (
 	"container/ring"
 	"time"
+
+	"github.com/rybnov/logger/types"
 )
 
 type MessageBuffer struct {
@@ -14,7 +16,7 @@ func NewMessageBuffer(n int) *MessageBuffer {
 }
 
 type RingCell struct {
-	LogParams LogParams
+	LogParams types.LogParams
 	Message   string
 	timestamp int64
 }
@@ -79,7 +81,7 @@ func (mb *MessageBuffer) AddCell(r *RingCell) {
 	cur.Value = r
 }
 
-func NewCell(lp LogParams, m string) *RingCell {
+func NewCell(lp types.LogParams, m string) *RingCell {
 	return &RingCell{
 		LogParams: lp,
 		Message:   m,

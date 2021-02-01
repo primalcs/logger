@@ -1,4 +1,4 @@
-package logger
+package types
 
 import "time"
 
@@ -58,7 +58,7 @@ const (
 	DelimiterV       = " | "
 	DelimiterH       = " - "
 	DelimiterA       = " * "
-	defaultDelimiter = DelimiterV
+	DefaultDelimiter = DelimiterV
 )
 
 const (
@@ -73,4 +73,4 @@ const (
 	WriterStatusStopped
 )
 
-var defaultReconnectionTime = time.Minute
+var DefaultReconnectionTime = time.Minute

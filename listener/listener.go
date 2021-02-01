@@ -1,4 +1,4 @@
-package logger
+package listener
 
 import (
 	"fmt"
@@ -6,12 +6,16 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/rybnov/logger/config"
+
+	"github.com/rybnov/logger/types"
+
 	"github.com/gorilla/mux"
 )
 
-func NewListener(port int, logger *Logger) {
+func NewListener(port int, config *config.Config) {
 	r := mux.NewRouter()
-	r.HandleFunc("/logger/setvar", SetVar(logger)).Methods(http.MethodGet)
+	r.HandleFunc("/logger/setvar", SetVar(config)).Methods(http.MethodGet)
 	r.HandleFunc("/logger/health", Health).Methods(http.MethodGet)
 	r.Use(mux.CORSMethodMiddleware(r))
 
@@ -26,14 +30,14 @@ func NewListener(port int, logger *Logger) {
 	go log.Println(srv.ListenAndServe())
 }
 
-func SetVar(logger *Logger) func(http.ResponseWriter, *http.Request) {
+func SetVar(config *config.Config) func(http.ResponseWriter, *http.Request) {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		lvl := request.FormValue("level")
-		logLevel, ok := LogLevelsInv[lvl]
+		logLevel, ok := types.LogLevelsInv[lvl]
 		if !ok {
 			return
 		}
-		logger.config.SetLogLevel(logLevel)
+		config.SetLogLevel(logLevel)
 	}
 }
 

@@ -1,9 +1,13 @@
-package logger
+package writer
 
-import "time"
+import (
+	"time"
 
-func Format(level LogLevel, delimiter, tag, prefix, msg string, kvs ...string) string {
-	out := LogLevels[level]
+	"github.com/rybnov/logger/types"
+)
+
+func Format(level types.LogLevel, delimiter, tag, prefix, msg string, kvs ...string) string {
+	out := types.LogLevels[level]
 	if tag != "" {
 		out += delimiter + tag
 	}

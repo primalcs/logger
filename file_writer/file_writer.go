@@ -1,8 +1,10 @@
-package logger
+package file_writer
 
 import (
 	"os"
 	"strings"
+
+	"github.com/rybnov/logger/types"
 )
 
 type fileWriter struct {
@@ -37,7 +39,7 @@ func (f *fileWriter) Debug(m string) error   { _, err := f.Write([]byte(m)); ret
 
 func (f *fileWriter) Write(ba []byte) (int, error) {
 	f.counter++
-	if f.counter == SyncFileAfterMessagesCount {
+	if f.counter == types.SyncFileAfterMessagesCount {
 		f.counter = 0
 		if err := f.file.Sync(); err != nil {
 			return 0, err

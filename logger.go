@@ -4,17 +4,23 @@ import (
 	"context"
 	"log/syslog"
 	"time"
+
+	"github.com/rybnov/logger/writer_pool"
+
+	"github.com/rybnov/logger/types"
+
+	"github.com/rybnov/logger/config"
 )
 
 type Logger struct {
-	config  *config
-	writers *writerPool
+	config  *config.Config
+	writers *writer_pool.WriterPool
 }
 
 func NewLogger(ctx context.Context, opts ...Option) (*Logger, error) {
 	l := &Logger{
-		config:  NewConfig(),
-		writers: NewWriterPool(ctx),
+		config:  config.NewConfig(),
+		writers: writer_pool.NewWriterPool(ctx),
 	}
 	for _, opt := range opts {
 		if err := opt(l); err != nil {
@@ -27,12 +33,12 @@ func NewLogger(ctx context.Context, opts ...Option) (*Logger, error) {
 
 func NewDefaultLogger() (*Logger, error) {
 	opts := []Option{
-		WithDelimiter(DelimiterV),
+		WithDelimiter(types.DelimiterV),
 		WithFileWriter("/var/log/logger/", "file"),
 		WithHttpListener(8080),
 		WithLocalWriter("local", syslog.LOG_DEBUG|syslog.LOG_SYSLOG, 1),
-		WithLogLevel(DEBUG),
-		WithTimeLog(time.UTC, time.RFC3339),
+		WithLogLevel(types.DEBUG),
+		WithTimeLog(time.RFC3339, time.UTC),
 	}
 
 	l, err := NewLogger(context.Background(), opts...)
@@ -42,29 +48,32 @@ func NewDefaultLogger() (*Logger, error) {
 	return l, nil
 }
 
-func (lg *Logger) Log(level LogLevel, tag, msg string, kvs ...string) {
+func (lg *Logger) Log(level types.LogLevel, tag, msg string, kvs ...string) {
 	var isForced bool
 	maxLvl := lg.config.GetLogLevel()
 	// ignore log
-	if level < FORCE && level > maxLvl {
+	if level < types.FORCE && level > maxLvl {
 		return
 	}
 	// log is forced
-	if level > DEBUG {
+	if level > types.DEBUG {
 		isForced = true
 		level = level & 0b111
 	}
+
+	ft, loc := lg.config.GetTimeOptions()
+	tp := types.TimeParams{
+		Location: loc,
+		Format:   ft,
+	}
 	lg.writers.WriteAll(
-		LogParams{
+		types.LogParams{
 			IsForced: isForced,
 			Level:    level,
 		},
-		TimeParams{
-			Location: lg.config.location,
-			Format:   lg.config.timeFormat,
-		},
-		MsgParams{
-			Delimiter: lg.config.delimiter,
+		tp,
+		types.MsgParams{
+			Delimiter: lg.config.GetDelimiter(),
 			Tag:       tag,
 			Msg:       msg,
 		},
