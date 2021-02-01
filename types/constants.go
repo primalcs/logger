@@ -74,3 +74,7 @@ const (
 )
 
 var DefaultReconnectionTime = time.Minute
+
+const (
+	LogCallerSkipLevels = 1
+)

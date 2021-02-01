@@ -1,6 +1,8 @@
 package writer
 
 import (
+	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/rybnov/logger/types"
@@ -19,7 +21,7 @@ func Format(level types.LogLevel, delimiter, tag, prefix, msg string, kvs ...str
 			if k%2 == 0 {
 				out += ":"
 			} else {
-				out += " "
+				out += ", "
 			}
 		}
 	}
@@ -29,4 +31,13 @@ func Format(level types.LogLevel, delimiter, tag, prefix, msg string, kvs ...str
 func LogTime(loc *time.Location, format, delimiter, msg string) string {
 	t := time.Now().In(loc).Format(format)
 	return t + delimiter + msg
+}
+
+func LogCaller(delimiter, msg string) string {
+	_, fn, ln, ok := runtime.Caller(types.LogCallerSkipLevels)
+	if !ok {
+		return msg
+	}
+	call := fmt.Sprintf("file: %s; line: %d", fn, ln)
+	return call + delimiter + msg
 }

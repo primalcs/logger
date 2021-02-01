@@ -13,26 +13,26 @@ import (
 
 type WriterPool struct {
 	mu        sync.RWMutex
-	writers   map[string]*writer.Writer
+	writers   []*writer.Writer
 	connector *connector.Connector
 }
 
 func NewWriterPool(ctx context.Context) *WriterPool {
 	wp := &WriterPool{
-		writers:   make(map[string]*writer.Writer),
+		writers:   make([]*writer.Writer, 0),
 		connector: connector.NewConnector(),
 	}
 	wp.connector.Run(ctx, types.DefaultReconnectionTime)
 	return wp
 }
 
-func (wp *WriterPool) SetWriter(wType string, w *writer.Writer) {
+func (wp *WriterPool) AddWriter(wType string, w *writer.Writer) {
 	if wType != types.TCP && wType != types.UDP && wType != types.LOCAL {
 		return
 	}
 	wp.mu.Lock()
 	defer wp.mu.Unlock()
-	wp.writers[wType] = w
+	wp.writers = append(wp.writers, w)
 }
 
 func (wp *WriterPool) WriteAll(lp types.LogParams, tp types.TimeParams, mp types.MsgParams, kvs ...string) {
@@ -41,7 +41,6 @@ func (wp *WriterPool) WriteAll(lp types.LogParams, tp types.TimeParams, mp types
 	for _, v := range wp.writers {
 		if err := v.Write(lp, tp, mp, kvs...); err != nil {
 			wp.connector.AddToQ(v)
-
 			continue
 		}
 	}

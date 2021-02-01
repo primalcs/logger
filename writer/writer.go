@@ -85,6 +85,9 @@ func (w *Writer) Reconnect() error {
 
 func (w *Writer) Write(lp types.LogParams, tp types.TimeParams, mp types.MsgParams, kvs ...string) error {
 	m := Format(lp.Level, mp.Delimiter, mp.Tag, w.prefixTag, mp.Msg, kvs...)
+	if lp.IsWithCaller {
+		m = LogCaller(mp.Delimiter, m)
+	}
 	if tp.Location != nil {
 		m = LogTime(tp.Location, tp.Format, mp.Delimiter, m)
 	}

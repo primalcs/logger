@@ -68,8 +68,9 @@ func (lg *Logger) Log(level types.LogLevel, tag, msg string, kvs ...string) {
 	}
 	lg.writers.WriteAll(
 		types.LogParams{
-			IsForced: isForced,
-			Level:    level,
+			IsForced:     isForced,
+			Level:        level,
+			IsWithCaller: lg.config.GetWithCaller(),
 		},
 		tp,
 		types.MsgParams{

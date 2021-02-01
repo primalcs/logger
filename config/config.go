@@ -8,11 +8,12 @@ import (
 )
 
 type Config struct {
-	mu         sync.RWMutex
-	logLevel   types.LogLevel
-	delimiter  string
-	location   *time.Location
-	timeFormat string
+	mu           sync.RWMutex
+	logLevel     types.LogLevel
+	delimiter    string
+	location     *time.Location
+	timeFormat   string
+	isWithCaller bool
 }
 
 func NewConfig() *Config {
@@ -65,4 +66,18 @@ func (c *Config) GetTimeOptions() (string, *time.Location) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.timeFormat, c.location
+}
+
+func (c *Config) SetWithCaller(val bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.isWithCaller != val {
+		c.isWithCaller = val
+	}
+}
+
+func (c *Config) GetWithCaller() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.isWithCaller
 }

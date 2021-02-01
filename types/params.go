@@ -5,8 +5,9 @@ import (
 )
 
 type LogParams struct {
-	IsForced bool
-	Level    LogLevel
+	IsForced     bool
+	Level        LogLevel
+	IsWithCaller bool
 }
 
 type TimeParams struct {

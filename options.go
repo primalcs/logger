@@ -18,7 +18,7 @@ func WithTCPConnection(addr, tag string, priority syslog.Priority, bufferLen int
 		if err != nil {
 			return err
 		}
-		logger.writers.SetWriter(types.TCP, w)
+		logger.writers.AddWriter(types.TCP, w)
 		return nil
 	}
 }
@@ -29,7 +29,7 @@ func WithUDPConnection(addr, tag string, priority syslog.Priority, bufferLen int
 		if err != nil {
 			return err
 		}
-		logger.writers.SetWriter(types.UDP, w)
+		logger.writers.AddWriter(types.UDP, w)
 		return nil
 	}
 }
@@ -40,7 +40,7 @@ func WithLocalWriter(tag string, priority syslog.Priority, bufferLen int) Option
 		if err != nil {
 			return err
 		}
-		logger.writers.SetWriter(types.LOCAL, w)
+		logger.writers.AddWriter(types.LOCAL, w)
 		return nil
 	}
 }
@@ -51,7 +51,7 @@ func WithFileWriter(addr, tag string) Option {
 		if err != nil {
 			return err
 		}
-		logger.writers.SetWriter(types.FILE, w)
+		logger.writers.AddWriter(types.FILE, w)
 		return nil
 	}
 }
