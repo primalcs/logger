@@ -4,6 +4,8 @@ import (
 	"log/syslog"
 	"sync"
 
+	"github.com/rybnov/logger/nsq_writer"
+
 	"github.com/rybnov/logger/file_writer"
 
 	"github.com/rybnov/logger/ring_buffer"
@@ -22,26 +24,38 @@ type Writer struct {
 	messageBuffer *ring_buffer.MessageBuffer
 }
 
-func NewWriter(connection, addr, prefix string, priority syslog.Priority, bufferLen int) (*Writer, error) {
+func createConnection(connection, addr, prefix string, priority syslog.Priority) (types.LogWriter, error) {
 	var d types.LogWriter
 	var err error
 	switch connection {
-	case types.TCP, types.UDP:
+	case types.ConnectionTCP, types.ConnectionUDP:
 		if d, err = syslog.Dial(connection, addr, priority, prefix); err != nil {
 			return nil, err
 		}
-	case types.LOCAL:
+	case types.ConnectionLOCAL:
 		if d, err = syslog.New(priority, prefix); err != nil {
 			return nil, err
 		}
-	case types.FILE:
+	case types.ConnectionFILE:
 		if d, err = file_writer.NewFileWriter(addr); err != nil {
 			return nil, err
 		}
+	case types.ConnectionNSQ:
+		if d, err = nsq_writer.NewNSQWriter(addr, prefix); err != nil {
+			return nil, err
+		}
+	}
+	return d, nil
+}
+
+func NewWriter(connection, addr, prefix string, priority syslog.Priority, bufferLen int) (*Writer, error) {
+	conn, err := createConnection(connection, addr, prefix, priority)
+	if err != nil {
+		return nil, err
 	}
 
 	w := &Writer{
-		logWriter:     d,
+		logWriter:     conn,
 		connection:    connection,
 		priority:      priority,
 		addr:          addr,
@@ -56,24 +70,12 @@ func (w *Writer) Reconnect() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	var d types.LogWriter
-	var err error
-	switch w.connection {
-	case types.TCP, types.UDP:
-		if d, err = syslog.Dial(w.connection, w.addr, w.priority, w.prefixTag); err != nil {
-			return err
-		}
-	case types.LOCAL:
-		if d, err = syslog.New(w.priority, w.prefixTag); err != nil {
-			return err
-		}
-	case types.FILE:
-		if d, err = file_writer.NewFileWriter(w.addr); err != nil {
-			return err
-		}
+	conn, err := createConnection(w.connection, w.addr, w.prefixTag, w.priority)
+	if err != nil {
+		return err
 	}
 
-	w.logWriter = d
+	w.logWriter = conn
 	w.status = types.WriterStatusOk
 
 	if err := w.processMessageBuffer(); err != nil {

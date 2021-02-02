@@ -26,10 +26,7 @@ func NewWriterPool(ctx context.Context) *WriterPool {
 	return wp
 }
 
-func (wp *WriterPool) AddWriter(wType string, w *writer.Writer) {
-	if wType != types.TCP && wType != types.UDP && wType != types.LOCAL {
-		return
-	}
+func (wp *WriterPool) AddWriter(w *writer.Writer) {
 	wp.mu.Lock()
 	defer wp.mu.Unlock()
 	wp.writers = append(wp.writers, w)

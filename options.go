@@ -14,44 +14,55 @@ type Option func(*Logger) error
 
 func WithTCPConnection(addr, tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := writer.NewWriter(types.TCP, addr, tag, priority, bufferLen)
+		w, err := writer.NewWriter(types.ConnectionTCP, addr, tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
-		logger.writers.AddWriter(types.TCP, w)
+		logger.writers.AddWriter(w)
 		return nil
 	}
 }
 
 func WithUDPConnection(addr, tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := writer.NewWriter(types.UDP, addr, tag, priority, bufferLen)
+		w, err := writer.NewWriter(types.ConnectionUDP, addr, tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
-		logger.writers.AddWriter(types.UDP, w)
+		logger.writers.AddWriter(w)
 		return nil
 	}
 }
 
 func WithLocalWriter(tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
-		w, err := writer.NewWriter(types.LOCAL, "", tag, priority, bufferLen)
+		w, err := writer.NewWriter(types.ConnectionLOCAL, "", tag, priority, bufferLen)
 		if err != nil {
 			return err
 		}
-		logger.writers.AddWriter(types.LOCAL, w)
+		logger.writers.AddWriter(w)
 		return nil
 	}
 }
 
-func WithFileWriter(addr, tag string) Option {
+func WithFileWriter(addr string) Option {
 	return func(logger *Logger) error {
-		w, err := writer.NewWriter(types.FILE, addr, tag, 0, 1)
+		w, err := writer.NewWriter(types.ConnectionFILE, addr, "", 0, 1)
 		if err != nil {
 			return err
 		}
-		logger.writers.AddWriter(types.FILE, w)
+		logger.writers.AddWriter(w)
+		return nil
+	}
+}
+
+func WithNSQWriter(addr, topic string) Option {
+	return func(logger *Logger) error {
+		w, err := writer.NewWriter(types.ConnectionNSQ, addr, topic, 0, 1)
+		if err != nil {
+			return err
+		}
+		logger.writers.AddWriter(w)
 		return nil
 	}
 }

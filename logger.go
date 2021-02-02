@@ -34,7 +34,7 @@ func NewLogger(ctx context.Context, opts ...Option) (*Logger, error) {
 func NewDefaultLogger() (*Logger, error) {
 	opts := []Option{
 		WithDelimiter(types.DelimiterV),
-		WithFileWriter("/var/log/logger/", "file"),
+		WithFileWriter("/var/log/logger/"),
 		WithHttpListener(8080),
 		WithLocalWriter("local", syslog.LOG_DEBUG|syslog.LOG_SYSLOG, 1),
 		WithLogLevel(types.DEBUG),

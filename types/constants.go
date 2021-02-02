@@ -3,11 +3,20 @@ package types
 import "time"
 
 const (
-	TCP   = "tcp"
-	UDP   = "udp"
-	LOCAL = "local"
-	FILE  = "file"
+	ConnectionTCP   = "tcp"
+	ConnectionUDP   = "udp"
+	ConnectionLOCAL = "local"
+	ConnectionFILE  = "file"
+	ConnectionNSQ   = "nsq"
 )
+
+var AvailableConnections = map[string]struct{}{
+	ConnectionTCP:   {},
+	ConnectionUDP:   {},
+	ConnectionLOCAL: {},
+	ConnectionFILE:  {},
+	ConnectionNSQ:   {},
+}
 
 const MaxConnectorQ = 4
 
@@ -76,5 +85,5 @@ const (
 var DefaultReconnectionTime = time.Minute
 
 const (
-	LogCallerSkipLevels = 1
+	LogCallerSkipLevels = 3
 )
