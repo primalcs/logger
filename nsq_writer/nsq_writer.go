@@ -34,6 +34,7 @@ func (n *nsqWriter) Write(ba []byte) (int, error) {
 	if err := n.producer.Publish(n.topic, ba); err != nil {
 		return 0, err
 	}
+
 	return len(ba), nil
 }
 

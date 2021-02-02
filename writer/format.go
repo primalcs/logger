@@ -13,7 +13,7 @@ func Format(level types.LogLevel, delimiter, tag, prefix, msg string, kvs ...str
 	if tag != "" {
 		out += delimiter + tag
 	}
-	out += delimiter + prefix + msg
+	out += delimiter + prefix + delimiter + msg
 	if len(kvs) > 0 {
 		out += delimiter
 		for k, v := range kvs {

@@ -83,7 +83,7 @@ func WithDelimiter(delimiter string) Option {
 
 func WithHttpListener(port int) Option {
 	return func(logger *Logger) error {
-		listener.NewListener(port, logger.config)
+		go listener.NewListener(port, logger.config)
 		return nil
 	}
 }

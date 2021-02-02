@@ -27,7 +27,7 @@ func NewListener(port int, config *config.Config) {
 		Handler:      r,
 	}
 
-	go log.Println(srv.ListenAndServe())
+	log.Println(srv.ListenAndServe())
 }
 
 func SetVar(config *config.Config) func(http.ResponseWriter, *http.Request) {

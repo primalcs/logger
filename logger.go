@@ -5,11 +5,9 @@ import (
 	"log/syslog"
 	"time"
 
-	"github.com/rybnov/logger/writer_pool"
-
-	"github.com/rybnov/logger/types"
-
 	"github.com/rybnov/logger/config"
+	"github.com/rybnov/logger/types"
+	"github.com/rybnov/logger/writer_pool"
 )
 
 type Logger struct {
@@ -66,6 +64,7 @@ func (lg *Logger) Log(level types.LogLevel, tag, msg string, kvs ...string) {
 		Location: loc,
 		Format:   ft,
 	}
+
 	lg.writers.WriteAll(
 		types.LogParams{
 			IsForced:     isForced,
