@@ -4,15 +4,15 @@ import (
 	"log/syslog"
 	"sync"
 
-	"github.com/rybnov/logger/nsq_writer"
-
-	"github.com/rybnov/logger/file_writer"
-
-	"github.com/rybnov/logger/ring_buffer"
-
-	"github.com/rybnov/logger/types"
+	"github.com/primalcs/logger/file_writer"
+	"github.com/primalcs/logger/nsq_writer"
+	"github.com/primalcs/logger/ring_buffer"
+	"github.com/primalcs/logger/syslog_writer"
+	"github.com/primalcs/logger/types"
 )
 
+// Writer is a logging unit with constant connection type, address, prefixTag and priority
+// contains ring buffer for unsent messages
 type Writer struct {
 	logWriter     types.LogWriter
 	connection    string
@@ -28,12 +28,8 @@ func createConnection(connection, addr, prefix string, priority syslog.Priority)
 	var d types.LogWriter
 	var err error
 	switch connection {
-	case types.ConnectionTCP, types.ConnectionUDP:
-		if d, err = syslog.Dial(connection, addr, priority, prefix); err != nil {
-			return nil, err
-		}
-	case types.ConnectionLOCAL:
-		if d, err = syslog.New(priority, prefix); err != nil {
+	case types.ConnectionTCP, types.ConnectionUDP, types.ConnectionLOCAL:
+		if d, err = syslog_writer.NewSysLogWriter(connection, addr, prefix, priority); err != nil {
 			return nil, err
 		}
 	case types.ConnectionFILE:
@@ -48,6 +44,7 @@ func createConnection(connection, addr, prefix string, priority syslog.Priority)
 	return d, nil
 }
 
+// NewWriter creates an logging instance with given parameters
 func NewWriter(connection, addr, prefix string, priority syslog.Priority, bufferLen int) (*Writer, error) {
 	conn, err := createConnection(connection, addr, prefix, priority)
 	if err != nil {
@@ -66,6 +63,8 @@ func NewWriter(connection, addr, prefix string, priority syslog.Priority, buffer
 	return w, nil
 }
 
+// Reconnect tries to create new logger connection with old parameters;
+// if succeed sends messages from ring buffer and erases them
 func (w *Writer) Reconnect() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -79,12 +78,14 @@ func (w *Writer) Reconnect() error {
 	w.status = types.WriterStatusOk
 
 	if err := w.processMessageBuffer(); err != nil {
-		w.Stop(false)
+		w.stop()
 		return err
 	}
 	return nil
 }
 
+// Write writes message with parameters if writer status is OK
+// otherwise adds a message to ring buffer
 func (w *Writer) Write(lp types.LogParams, tp types.TimeParams, mp types.MsgParams, kvs ...string) error {
 	m := Format(lp.Level, mp.Delimiter, mp.Tag, w.prefixTag, mp.Msg, kvs...)
 	if lp.IsWithCaller {
@@ -105,7 +106,7 @@ func (w *Writer) Write(lp types.LogParams, tp types.TimeParams, mp types.MsgPara
 	case types.WriterStatusStopped:
 		writeFunc = w.writeAtStatusStopped
 	default:
-		w.Stop(false)
+		w.stop()
 		writeFunc = w.writeAtStatusStopped
 	}
 	if err := writeFunc(lp, m); err != nil {
@@ -116,34 +117,17 @@ func (w *Writer) Write(lp types.LogParams, tp types.TimeParams, mp types.MsgPara
 }
 
 func (w *Writer) writeAtStatusOk(lp types.LogParams, m string) error {
-	writeFunc := func(m string) error {
-		_, err := w.logWriter.Write([]byte(m))
-		return err
-	}
 	if lp.IsForced {
-		switch lp.Level {
-		case types.EMERG:
-			writeFunc = w.logWriter.Emerg
-		case types.ALERT:
-			writeFunc = w.logWriter.Alert
-		case types.CRIT:
-			writeFunc = w.logWriter.Crit
-		case types.ERR:
-			writeFunc = w.logWriter.Err
-		case types.WARN:
-			writeFunc = w.logWriter.Warning
-		case types.NOTIFY:
-			writeFunc = w.logWriter.Notice
-		case types.INFO:
-			writeFunc = w.logWriter.Info
-		case types.DEBUG:
-			writeFunc = w.logWriter.Debug
-		default:
-			return nil
+		if _, err := w.logWriter.WriteForced(lp.Level, []byte(m)); err != nil {
+			return err
+		}
+	} else {
+		if _, err := w.logWriter.Write([]byte(m)); err != nil {
+			return err
 		}
 	}
 
-	return writeFunc(m)
+	return nil
 }
 
 func (w *Writer) writeAtStatusStopped(lp types.LogParams, m string) error {
@@ -166,12 +150,14 @@ func (w *Writer) processMessageBuffer() error {
 	return nil
 }
 
-func (w *Writer) Stop(lock bool) {
-	if lock {
-		w.mu.Lock()
-		defer w.mu.Unlock()
-	}
+// Stop closes Writer connection and sets it's status to Stopped; uses mutex lock
+func (w *Writer) Stop() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.stop()
+}
 
+func (w *Writer) stop() {
 	w.logWriter.Close()
 	w.status = types.WriterStatusStopped
 }

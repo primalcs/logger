@@ -2,6 +2,7 @@ package nsq_writer
 
 import (
 	"github.com/nsqio/go-nsq"
+	"github.com/primalcs/logger/types"
 )
 
 type nsqWriter struct {
@@ -9,6 +10,7 @@ type nsqWriter struct {
 	topic    string
 }
 
+// New NSQWriter configures
 func NewNSQWriter(addr, topic string) (*nsqWriter, error) {
 	config := nsq.NewConfig()
 	p, err := nsq.NewProducer(addr, config)
@@ -21,15 +23,12 @@ func NewNSQWriter(addr, topic string) (*nsqWriter, error) {
 	}, err
 }
 
-func (n *nsqWriter) Emerg(m string) error   { _, err := n.Write([]byte(m)); return err }
-func (n *nsqWriter) Alert(m string) error   { _, err := n.Write([]byte(m)); return err }
-func (n *nsqWriter) Crit(m string) error    { _, err := n.Write([]byte(m)); return err }
-func (n *nsqWriter) Err(m string) error     { _, err := n.Write([]byte(m)); return err }
-func (n *nsqWriter) Warning(m string) error { _, err := n.Write([]byte(m)); return err }
-func (n *nsqWriter) Notice(m string) error  { _, err := n.Write([]byte(m)); return err }
-func (n *nsqWriter) Info(m string) error    { _, err := n.Write([]byte(m)); return err }
-func (n *nsqWriter) Debug(m string) error   { _, err := n.Write([]byte(m)); return err }
+// WriteForced for nsqWriter is the same as Write(). Needed to implement interface
+func (n *nsqWriter) WriteForced(_ types.LogLevel, ba []byte) (int, error) {
+	return n.Write(ba)
+}
 
+// Write publishes bytes to predefined topic of nsq
 func (n *nsqWriter) Write(ba []byte) (int, error) {
 	if err := n.producer.Publish(n.topic, ba); err != nil {
 		return 0, err
@@ -38,6 +37,7 @@ func (n *nsqWriter) Write(ba []byte) (int, error) {
 	return len(ba), nil
 }
 
+// Close stops the nsq producer
 func (n *nsqWriter) Close() error {
 	n.producer.Stop()
 	return nil

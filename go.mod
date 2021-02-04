@@ -1,4 +1,4 @@
-module github.com/rybnov/logger
+module github.com/primalcs/logger
 
 go 1.15
 

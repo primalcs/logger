@@ -6,17 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rybnov/logger/config"
-
-	"github.com/rybnov/logger/types"
-
 	"github.com/gorilla/mux"
+	"github.com/primalcs/logger/config"
+	"github.com/primalcs/logger/types"
 )
 
+// NewListener creates an instance for getting http requests for modifying configs
 func NewListener(port int, config *config.Config) {
 	r := mux.NewRouter()
-	r.HandleFunc("/logger/setvar", SetVar(config)).Methods(http.MethodGet)
-	r.HandleFunc("/logger/health", Health).Methods(http.MethodGet)
+	r.HandleFunc("/logger/setvar", setVarHandler(config)).Methods(http.MethodGet)
+	r.HandleFunc("/logger/health", healthHandler).Methods(http.MethodGet)
 	r.Use(mux.CORSMethodMiddleware(r))
 
 	srv := &http.Server{
@@ -30,7 +29,7 @@ func NewListener(port int, config *config.Config) {
 	log.Println(srv.ListenAndServe())
 }
 
-func SetVar(config *config.Config) func(http.ResponseWriter, *http.Request) {
+func setVarHandler(config *config.Config) func(http.ResponseWriter, *http.Request) {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		lvl := request.FormValue("level")
 		logLevel, ok := types.LogLevelsInv[lvl]
@@ -41,7 +40,7 @@ func SetVar(config *config.Config) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func Health(w http.ResponseWriter, r *http.Request) {
+func healthHandler(w http.ResponseWriter, r *http.Request) {
 	msg := `{"status":"alive"}`
 	w.Write([]byte(msg))
 }

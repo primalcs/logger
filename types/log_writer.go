@@ -1,14 +1,8 @@
 package types
 
+// LogWriter is an interface that must be implemented for using with logger
 type LogWriter interface {
-	Emerg(m string) error
-	Alert(m string) error
-	Crit(m string) error
-	Err(m string) error
-	Warning(m string) error
-	Notice(m string) error
-	Info(m string) error
-	Debug(m string) error
 	Write([]byte) (int, error)
+	WriteForced(LogLevel, []byte) (int, error)
 	Close() error
 }

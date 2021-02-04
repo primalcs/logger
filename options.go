@@ -4,14 +4,15 @@ import (
 	"log/syslog"
 	"time"
 
-	"github.com/rybnov/logger/listener"
-	"github.com/rybnov/logger/writer"
-
-	"github.com/rybnov/logger/types"
+	"github.com/primalcs/logger/listener"
+	"github.com/primalcs/logger/types"
+	"github.com/primalcs/logger/writer"
 )
 
+// Option implements options pattern for Logger
 type Option func(*Logger) error
 
+// WithTCPConnection adds a tcp syslog writer to Logger
 func WithTCPConnection(addr, tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
 		w, err := writer.NewWriter(types.ConnectionTCP, addr, tag, priority, bufferLen)
@@ -23,6 +24,7 @@ func WithTCPConnection(addr, tag string, priority syslog.Priority, bufferLen int
 	}
 }
 
+// WithUDPConnection adds a udp syslog writer to Logger
 func WithUDPConnection(addr, tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
 		w, err := writer.NewWriter(types.ConnectionUDP, addr, tag, priority, bufferLen)
@@ -34,6 +36,7 @@ func WithUDPConnection(addr, tag string, priority syslog.Priority, bufferLen int
 	}
 }
 
+// WithLocalWriter adds a local syslog writer to Logger
 func WithLocalWriter(tag string, priority syslog.Priority, bufferLen int) Option {
 	return func(logger *Logger) error {
 		w, err := writer.NewWriter(types.ConnectionLOCAL, "", tag, priority, bufferLen)
@@ -45,6 +48,7 @@ func WithLocalWriter(tag string, priority syslog.Priority, bufferLen int) Option
 	}
 }
 
+// WithFileWriter creates a log file at specified address
 func WithFileWriter(addr string) Option {
 	return func(logger *Logger) error {
 		w, err := writer.NewWriter(types.ConnectionFILE, addr, "", 0, 1)
@@ -56,6 +60,7 @@ func WithFileWriter(addr string) Option {
 	}
 }
 
+// WithNSQWriter creates a simple connection to NSQ
 func WithNSQWriter(addr, topic string) Option {
 	return func(logger *Logger) error {
 		w, err := writer.NewWriter(types.ConnectionNSQ, addr, topic, 0, 1)
@@ -67,6 +72,7 @@ func WithNSQWriter(addr, topic string) Option {
 	}
 }
 
+// WithLogLevel specifies the maximum allowed log level
 func WithLogLevel(level types.LogLevel) Option {
 	return func(logger *Logger) error {
 		logger.config.SetLogLevel(level)
@@ -74,6 +80,7 @@ func WithLogLevel(level types.LogLevel) Option {
 	}
 }
 
+// WithDelimiter specifies message delimiter
 func WithDelimiter(delimiter string) Option {
 	return func(logger *Logger) error {
 		logger.config.SetDelimiter(delimiter)
@@ -81,6 +88,7 @@ func WithDelimiter(delimiter string) Option {
 	}
 }
 
+// WithHttpListener creates new http-server for configuring logger and run it in a new goroutine
 func WithHttpListener(port int) Option {
 	return func(logger *Logger) error {
 		go listener.NewListener(port, logger.config)
@@ -88,6 +96,7 @@ func WithHttpListener(port int) Option {
 	}
 }
 
+// WithTimeLog specifies time format and location for logs
 func WithTimeLog(format string, loc *time.Location) Option {
 	return func(logger *Logger) error {
 		logger.config.SetTimeOptions(format, loc)

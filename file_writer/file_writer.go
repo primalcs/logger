@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rybnov/logger/types"
+	"github.com/primalcs/logger/types"
 )
 
 type fileWriter struct {
@@ -12,6 +12,7 @@ type fileWriter struct {
 	counter int
 }
 
+// NewFileWriter creates new instance for writing log into file
 func NewFileWriter(addr string) (*fileWriter, error) {
 	p := strings.Split(addr, "/")
 	path := strings.Join(p[:len(p)-1], "/")
@@ -28,15 +29,12 @@ func NewFileWriter(addr string) (*fileWriter, error) {
 	}, nil
 }
 
-func (f *fileWriter) Emerg(m string) error   { _, err := f.Write([]byte(m)); return err }
-func (f *fileWriter) Alert(m string) error   { _, err := f.Write([]byte(m)); return err }
-func (f *fileWriter) Crit(m string) error    { _, err := f.Write([]byte(m)); return err }
-func (f *fileWriter) Err(m string) error     { _, err := f.Write([]byte(m)); return err }
-func (f *fileWriter) Warning(m string) error { _, err := f.Write([]byte(m)); return err }
-func (f *fileWriter) Notice(m string) error  { _, err := f.Write([]byte(m)); return err }
-func (f *fileWriter) Info(m string) error    { _, err := f.Write([]byte(m)); return err }
-func (f *fileWriter) Debug(m string) error   { _, err := f.Write([]byte(m)); return err }
+// WriteForced for fileWriter is the same as Write(). Needed to implement interface
+func (f *fileWriter) WriteForced(_ types.LogLevel, ba []byte) (int, error) {
+	return f.Write(ba)
+}
 
+// Write writes bytes into file and syncs every types.SyncFileAfterMessagesCount records
 func (f *fileWriter) Write(ba []byte) (int, error) {
 	f.counter++
 	if f.counter == types.SyncFileAfterMessagesCount {
@@ -48,6 +46,7 @@ func (f *fileWriter) Write(ba []byte) (int, error) {
 	return f.file.Write(ba)
 }
 
+// Close syncs fileWriter and closes it
 func (f *fileWriter) Close() error {
 	if err := f.file.Sync(); err != nil {
 		return err

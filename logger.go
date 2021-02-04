@@ -5,16 +5,18 @@ import (
 	"log/syslog"
 	"time"
 
-	"github.com/rybnov/logger/config"
-	"github.com/rybnov/logger/types"
-	"github.com/rybnov/logger/writer_pool"
+	"github.com/primalcs/logger/config"
+	"github.com/primalcs/logger/types"
+	"github.com/primalcs/logger/writer_pool"
 )
 
+// Logger is the main logging structure of this package
 type Logger struct {
 	config  *config.Config
 	writers *writer_pool.WriterPool
 }
 
+// NewLogger creates a new logging instance with options
 func NewLogger(ctx context.Context, opts ...Option) (*Logger, error) {
 	l := &Logger{
 		config:  config.NewConfig(),
@@ -29,6 +31,14 @@ func NewLogger(ctx context.Context, opts ...Option) (*Logger, error) {
 	return l, nil
 }
 
+// NewDefaultLogger creates new logger with default options:
+// delimiter: " | "
+// fileWriter in "/var/log/logger/"
+// httpListener on 8080 port
+// localWriter with ring buffer length=1
+// loglevel Debug
+// and time format RFC3339 in UTC location
+// mostly for testing purposes
 func NewDefaultLogger() (*Logger, error) {
 	opts := []Option{
 		WithDelimiter(types.DelimiterV),
@@ -46,6 +56,7 @@ func NewDefaultLogger() (*Logger, error) {
 	return l, nil
 }
 
+// Log logs message to all defined writers
 func (lg *Logger) Log(level types.LogLevel, tag, msg string, kvs ...string) {
 	var isForced bool
 	maxLvl := lg.config.GetLogLevel()
@@ -56,7 +67,7 @@ func (lg *Logger) Log(level types.LogLevel, tag, msg string, kvs ...string) {
 	// log is forced
 	if level > types.DEBUG {
 		isForced = true
-		level = level & 0b111
+		level &= 0b111
 	}
 
 	ft, loc := lg.config.GetTimeOptions()
@@ -80,6 +91,8 @@ func (lg *Logger) Log(level types.LogLevel, tag, msg string, kvs ...string) {
 		kvs...)
 }
 
+// AddOptions options add new options to existing logger
+// should be used before first call of logger
 func (lg *Logger) AddOptions(opts ...Option) error {
 	for _, opt := range opts {
 		if err := opt(lg); err != nil {

@@ -4,9 +4,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rybnov/logger/types"
+	"github.com/primalcs/logger/types"
 )
 
+// Config is a struct that encapsulates logger configs for thread-safe usage
 type Config struct {
 	mu           sync.RWMutex
 	logLevel     types.LogLevel
@@ -16,6 +17,7 @@ type Config struct {
 	isWithCaller bool
 }
 
+// NewConfig creates new Config instance
 func NewConfig() *Config {
 	cfg := &Config{
 		delimiter: types.DefaultDelimiter,
@@ -23,6 +25,7 @@ func NewConfig() *Config {
 	return cfg
 }
 
+// SetLogLevel sets logging level; thread-safe
 func (c *Config) SetLogLevel(level types.LogLevel) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -31,12 +34,14 @@ func (c *Config) SetLogLevel(level types.LogLevel) {
 	}
 }
 
+// GetLogLevel gets logging level; thread-safe
 func (c *Config) GetLogLevel() types.LogLevel {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.logLevel
 }
 
+// SetDelimiter sets delimiter string; thread-safe
 func (c *Config) SetDelimiter(d string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -45,12 +50,14 @@ func (c *Config) SetDelimiter(d string) {
 	}
 }
 
+// GetDelimiter gets delimiter string; thread-safe
 func (c *Config) GetDelimiter() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.delimiter
 }
 
+// SetTimeOptions sets time format and location config; thread-safe
 func (c *Config) SetTimeOptions(format string, location *time.Location) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -62,12 +69,14 @@ func (c *Config) SetTimeOptions(format string, location *time.Location) {
 	}
 }
 
+// GetTimeOptions gets time format and location config; thread-safe
 func (c *Config) GetTimeOptions() (string, *time.Location) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.timeFormat, c.location
 }
 
+// SetWithCaller sets config for calling runtime.Caller() for logging; thread-safe
 func (c *Config) SetWithCaller(val bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -76,6 +85,7 @@ func (c *Config) SetWithCaller(val bool) {
 	}
 }
 
+// GetWithCaller shows if the runtime.Caller() in needed; thread-safe
 func (c *Config) GetWithCaller() bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()

@@ -10,15 +10,7 @@ const (
 	ConnectionNSQ   = "nsq"
 )
 
-var AvailableConnections = map[string]struct{}{
-	ConnectionTCP:   {},
-	ConnectionUDP:   {},
-	ConnectionLOCAL: {},
-	ConnectionFILE:  {},
-	ConnectionNSQ:   {},
-}
-
-const MaxConnectorQ = 4
+const MaxConnectorQ = 5 // TODO make configurable
 
 type LogLevel int
 
@@ -82,7 +74,7 @@ const (
 	WriterStatusStopped
 )
 
-var DefaultReconnectionTime = time.Minute
+var DefaultReconnectionTime = time.Minute // TODO make configurable
 
 const (
 	LogCallerSkipLevels = 3
