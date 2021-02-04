@@ -137,14 +137,14 @@ func (w *Writer) writeAtStatusStopped(lp types.LogParams, m string) error {
 
 func (w *Writer) processMessageBuffer() error {
 	for {
-		cell, ptr, ok := w.messageBuffer.GetOldestCell()
+		cell, _, ok := w.messageBuffer.GetCurrent()
 		if !ok {
 			break
 		}
 		if err := w.writeAtStatusOk(cell.LogParams, cell.Message); err != nil {
 			return err
 		}
-		w.messageBuffer.EraseCell(ptr)
+		w.messageBuffer.EraseCell()
 	}
 
 	return nil
