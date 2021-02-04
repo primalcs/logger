@@ -103,3 +103,11 @@ func WithTimeLog(format string, loc *time.Location) Option {
 		return nil
 	}
 }
+
+// WithCaller adds runtime.Caller() info to logs
+func WithCaller() Option {
+	return func(logger *Logger) error {
+		logger.config.SetWithCaller(true)
+		return nil
+	}
+}
