@@ -1,6 +1,7 @@
 package writer
 
 import (
+	"encoding/json"
 	"fmt"
 	"runtime"
 	"time"
@@ -14,16 +15,27 @@ func Format(level types.LogLevel, delimiter, tag, prefix, msg string, kvs ...str
 	if tag != "" {
 		out += delimiter + tag
 	}
-	out += delimiter + prefix + delimiter + msg
+	if prefix != "" {
+		out += delimiter + prefix
+	}
+	out += delimiter + msg
 	if len(kvs) > 0 {
 		out += delimiter
-		for k, v := range kvs {
-			out += v
-			if k%2 == 0 {
-				out += ":"
+		key := kvs[0]
+		mp := map[string]string{key: ""}
+
+		for i := 1; i < len(kvs); i++ {
+			if i%2 != 0 {
+				mp[key] = kvs[i]
 			} else {
-				out += ", "
+				key = kvs[i]
 			}
+		}
+		ba, err := json.Marshal(mp)
+		if err != nil {
+			// TODO process err
+		} else {
+			out += string(ba)
 		}
 	}
 	return out

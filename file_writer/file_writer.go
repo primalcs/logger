@@ -43,7 +43,7 @@ func (f *fileWriter) Write(ba []byte) (int, error) {
 			return 0, err
 		}
 	}
-	return f.file.Write(ba)
+	return f.file.WriteString(string(ba) + "\n")
 }
 
 // Close syncs fileWriter and closes it

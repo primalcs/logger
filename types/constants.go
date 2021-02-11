@@ -77,5 +77,5 @@ const (
 var DefaultReconnectionTime = time.Minute // TODO make configurable
 
 const (
-	LogCallerSkipLevels = 3
+	LogCallerSkipLevels = 4
 )
